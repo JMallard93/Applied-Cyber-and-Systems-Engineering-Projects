@@ -44,21 +44,24 @@ if __name__ == '__main__':
     else:
         print('[+] Got a connection!', client, addr)
 
-    # establist the SSH transport layer
-    bhSession = paramiko.Transport(client)
-    bhSession.add_server_key(HOSTKEY)
-    server = Server()
-    bhSession.start_server(server=server)
+    # establish the SSH transport layer
+    bhSession = paramiko.Transport(client) # wraps the socket connection into a paramiko SSH object
+    bhSession.add_server_key(HOSTKEY) # add the RSA host key so the server can authenticate itself to the client
+    server = Server() # instantiate the server class
+    bhSession.start_server(server=server) # starts the server using the rules defined in the Server class
 
-    chan = bhSession.accept(20)
+    # accept the channel and read the first message from client
+    chan = bhSession.accept(20) # wait up to 20 seconds for the client to authenticate and open a channel
     if chan is None:
         print('*** No channel.')
         sys.exit(1)
 
     print('[+] Authenticated!')
-    print(chan.recv(1024))
-    chan.send('Welcome to bh_ssh')
+    print(chan.recv(1024)) # print message received from client
+    chan.send('Welcome to bh_ssh') # send a welcome message back to the client
     try:
+        # loop for inputting commands to the client from the server
+        # note, the ssh_cmd script running on the client will take care of parsing and running the commands on the client
         while True:
             command= input("Enter command: ")
             if command != 'exit':
