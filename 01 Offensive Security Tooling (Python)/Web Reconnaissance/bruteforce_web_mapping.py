@@ -1,14 +1,18 @@
+# multi-threaded web directory and file brute-forcer that iterates through a text-based wordlist, appends specific target file extensions, 
+# and fires automated HTTP GET requests with custom User-Agent headers to discover hidden endpoints on a web server
+
 import queue
 import requests
 import threading
 import sys
 
-AGENT = "Mozzilla/5.0 (X11; Linux x86_64; rv:19.0) Gecko/20100101 Firefox/19.0"
-EXTENSIONS = ['.php', '.bak', '.orig', '.inc']
+AGENT = "Mozilla/5.0 (X11; Linux x86_64; rv:19.0) Gecko/20100101 Firefox/19.0" # spoofed user agent string to make us look like a normal browser
+EXTENSIONS = ['.php', '.bak', '.orig', '.inc'] # list of extensions that we will automatically append to words that don't have extensions
 TARGET = "http://testphp.vulnweb.com"
 THREADS = 50
 WORDLIST = "/home/john/Downloads/all.txt"
 
+# parsing and extending wordlists
 def get_words(resume=None):
 
     def extend_words(word):
