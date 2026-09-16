@@ -8,7 +8,7 @@ import textwrap  # formatting utility
 import threading  # threading, or running code concurrently
 
 
-def execute(cmd):  # function for executing commands
+def execute(cmd):  
     cmd = cmd.strip()  # removes whitespace around the cmd string
     if not cmd:  # error handling in case no cmd is given
         return
