@@ -13,13 +13,14 @@ THREADS = 50
 WORDLIST = "/home/john/Downloads/all.txt"
 
 # parsing and extending wordlists
-def get_words(resume=None):
+def get_words(resume=None): # option to resume where a previous scan left off
 
     def extend_words(word):
-        if "." in word:
+        if "." in word: # if word already has an extension, leave it as is
             words.put(f'/{word}')
-        else:
-            words.put(f'/{word}{extension}')
+        else: # if no extension, add all extensions from the EXTENSIONS list
+            for extension in EXTENSIONS:
+                words.put(f'/{word}{extension}')
 
     with open(WORDLIST) as f:
         raw_words = f.read()
