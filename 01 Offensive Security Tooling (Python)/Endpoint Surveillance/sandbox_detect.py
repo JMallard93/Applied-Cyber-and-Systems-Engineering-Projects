@@ -63,30 +63,31 @@ class Detector:
 
         detection_complete = False # loop control variable
         while not detection_complete: # keep looping until detection_complete is marked as True
-            keypress_time = self.get_key_press()
-            if keypress_time is not None and previous_timestamp is not None:
+            keypress_time = self.get_key_press() # looks for user input
+            if keypress_time is not None and previous_timestamp is not None: # if input is detected, calculate time since last input
                 elapsed = keypress_time - previous_timestamp
 
-                if elapsed <= double_click_threshold:
+                if elapsed <= double_click_threshold: # if inputs happen consecutively, consider it a double click
                     self.mouse_clicks -= 2
                     self.double_clicks += 1
                     if first_double_click is None:
                         first_double_click = time.time()
                     else:
-                        if self.double_clicks >= max_double_clicks:
+                        if self.double_clicks >= max_double_clicks: # too many double clicks indicates a sandbox bot, so exit
                             if (keypress_time - first_double_click <=
                                 (max_double_clicks*double_click_threshold)):
                                 sys.exit(0)
+                # once thresholds are met, it changes the detection_complete flag to True and ends the loop
                 if (self.keystrokes >= max_keystrokes and
                     self.double_clicks >= max_double_clicks and
                     self.mouse_clicks >= max_mouse_clicks):
                     detection_complete = True
 
-                previous_timestamp = keypress_time
+                previous_timestamp = keypress_time # update the timestamp for the next iteration
             elif keypress_time is not None:
                 previous_timestamp = keypress_time
 
 if __name__ == '__main__':
-    d = Detector()
-    d.detect()
+    d = Detector() # instantiate the detector
+    d.detect() # run the sandbox evasion check
     print('okay.')
