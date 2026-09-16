@@ -55,24 +55,25 @@ def test_remote():
             sys.stdout.write('x') # indicates the url did not exist or was not accessible
         sys.stdout.flush() # force the output to render immediately without waiting for a newline
 
+# multithreading orchestration
 def run():
-    mythreads = list()
-    for i in range(THREADS):
+    mythreads = list() # initialize list for holding thread objects
+    for i in range(THREADS): # referencing the beginning of the script, which lists the number of THREADS in use
         print(f'Spawning thread {i}')
-        t = threading.Thread(target=test_remote)
-        mythreads.append(t)
-        t.start()
+        t = threading.Thread(target=test_remote) # assigns the task for threads, which is the test_remote() function
+        mythreads.append(t) # put the new thread in our mythreads list
+        t.start() # start the thread
 
-    for thread in mythreads:
+    for thread in mythreads: # makes the function wait for all threads to coplete before moving on
         thread.join()
 
 if __name__ == '__main__':
-    with chdir("/home/john/Downloads/wordpress"):
-        gather_paths()
+    with chdir("/home/john/Downloads/wordpress"): # depends where the wordpress default directory is stored on our machine
+        gather_paths() # populate the queues with file paths
     input('Press return to continue.')
 
-    run()
-    with open('myanswers.txt', 'w') as f:
-        while not answers.empty():
+    run() # start and complete the multithreading scanning process
+    with open('myanswers.txt', 'w') as f: # create a file to write down findings
+        while not answers.empty(): # write every successful url from the answers queue into myanswers.txt
             f.write(f'{answers.get()}\n')
     print('done')
