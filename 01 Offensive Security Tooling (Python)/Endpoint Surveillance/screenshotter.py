@@ -1,4 +1,4 @@
-# This Python script is a Windows screen-capture utility that uses native Win32 graphics APIs (win32gui, win32ui, and win32api) to take a snapshot
+# Windows screen-capture utility that uses native Win32 graphics APIs (win32gui, win32ui, and win32api) to take a snapshot
 # of the entire virtual desktop (supporting multi-monitor configurations), save it as a bitmap file, and optionally read its contents.
 
 import base64
