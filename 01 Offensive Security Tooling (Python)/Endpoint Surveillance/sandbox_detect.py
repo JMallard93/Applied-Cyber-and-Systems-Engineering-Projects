@@ -37,30 +37,32 @@ class Detector:
     def get_key_press(self):
         for i in range(0, 0xff): # loop through 255 possible key codes (covering keyboard and mouse buttons)
             state = win32api.GetAsyncKeyState(i) # calls the API to check the status of key 'i'
-            if state & 0x0001:
-                if i == 0x1:
+            if state & 0x0001: # checks the last 'state' bit that indicates whether the key was pressed since the last time this function was called
+                if i == 0x1: # 0x1 is a left mouse click
                     self.mouse_clicks += 1
-                    return time.time()
-                elif i > 32 and i < 127:
+                    return time.time() # returns the timestamp of the click
+                elif i > 32 and i < 127: # checks if the key code is within printable ASCII range
                     self.keystrokes += 1
-        return None
+        return None # returns None if no activity is detected
 
+    # detection and evasion function
     def detect(self):
+        # initialize tracking variables
         previous_timestamp = None
         first_double_click = None
         double_click_threshold = 0.35
 
-        max_double_clicks = 10
-        max_keystrokes = random.randint(10,25)
-        max_mouse_clicks = random.randint(5,25)
-        max_input_threshold = 30000
+        max_double_clicks = 10 # threshold for double clicks, if more than this then it's likely a bot in a sandbox
+        max_keystrokes = random.randint(10,25) # Randomized keystrokes needed to pass inspection
+        max_mouse_clicks = random.randint(5,25) # Randomized clicks needed to pass inspection
+        max_input_threshold = 30000 # 30 second max idle time limit, listed in milliseconds
 
-        last_input = get_last_input()
-        if last_input >= max_input_threshold:
+        last_input = get_last_input() # check how long the system has been idle
+        if last_input >= max_input_threshold: # if idle for too long, exit, assumed to be a sandbox
             sys.exit(0)
 
-        detection_complete = False
-        while not detection_complete:
+        detection_complete = False # loop control variable
+        while not detection_complete: # keep looping until detection_complete is marked as True
             keypress_time = self.get_key_press()
             if keypress_time is not None and previous_timestamp is not None:
                 elapsed = keypress_time - previous_timestamp
