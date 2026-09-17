@@ -76,9 +76,10 @@ def proxy_handler(client_socket, remote_host, remote_port, receive_first):
 			hexdump(local_buffer) # and print its hexdump
 
 			local_buffer = request_handler(local_buffer) # modify the buffer with response_handler()
-			remote_socket.send(local_buffer)
-			print("[==>] Sent to remote.")
+			remote_socket.send(local_buffer) # forward to the remote server
+			print("[==>] Sent to remote.") 
 
+		# same as previous block, but we're receiving data from the remote server, instead of the local client
 		remote_buffer = receive_from(remote_socket)
 		if len(remote_buffer):
 			print("[<==] Received %d bytes from remote." % len(remote_buffer))
@@ -88,18 +89,18 @@ def proxy_handler(client_socket, remote_host, remote_port, receive_first):
 			client_socket.send(remote_buffer)
 			print("[<==] Sent to localhost.")
 
-		if not len(local_buffer) or not len(remote_buffer):
-			client_socket.close()
+		if not len(local_buffer) or not len(remote_buffer): # if either side drops connection or doesn't send data
+			client_socket.close() # close both connections
 			remote_socket.close()
 			print("[*] No more data. Closing connections.")
 			break
 
-
+# server listening setup
 def server_loop(local_host, local_port,
 		remote_host, remote_port, receive_first):
-	server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+	server = socket.socket(socket.AF_INET, socket.SOCK_STREAM) # creates TCP socket
 	try:
-		server.bind((local_host, local_port))
+		server.bind((local_host, local_port)) # binds socket to specified local IP and port
 	except Exception as e:
 		print('problem on bind: %r' % e)
 
@@ -108,32 +109,31 @@ def server_loop(local_host, local_port,
 		sys.exit(0)
 
 	print("[*] Listening on %s:%d" % (local_host, local_port))
-	server.listen(5)
-	while True:
-		client_socket, addr=server.accept()
-		# print out the local connection information
-		line="> Received incoming connection from %s:%d" % (addr[0], addr[1])
+	server.listen(5) # starts listening for incoming client connections with a backlog of 5
+	while True: # infinite loop accepting incoming connections
+		client_socket, addr=server.accept() # accepts a client connection and stores the socket and address 
+		
+		line="> Received incoming connection from %s:%d" % (addr[0], addr[1]) # print out the local connection information
 		print(line)
-		# start a thread to talk to the remote host
-		proxy_thread=threading.Thread(
+		
+		proxy_thread=threading.Thread( # start a thread to talk to the remote host, threading in case of multiple connections
 			target=proxy_handler,
 			args=(client_socket, remote_host,
 			remote_port, receive_first))
 		proxy_thread.start()
 
 def main():
-	if len(sys.argv[1:]) != 5:
+	if len(sys.argv[1:]) != 5: # verifies that exactly 5 cmd line arguments are provided
 		print("Usage: ./proxy.py [localhost] [localport]", end='')
 		print("[remotehost] [remoteport] [receive_first]")
 		print("Example: ./proxy.py 127.0.0.1 9000 10.12.132.1 9000 True")
 		sys.exit(0)
+	# assignment of arguments to variables
 	local_host=sys.argv[1]
 	local_port=int(sys.argv[2])
 	remote_host=sys.argv[3]
 	remote_port=int(sys.argv[4])
-
 	receive_first=sys.argv[5]
-
 	if "True" in receive_first:
 		receive_first=True
 	else:
