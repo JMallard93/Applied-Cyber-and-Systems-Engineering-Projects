@@ -62,20 +62,20 @@ def proxy_handler(client_socket, remote_host, remote_port, receive_first):
 		remote_buffer = receive_from(remote_socket) # pulls initial data
 		hexdump(remote_buffer) # prints hex dump of that data
 
-	remote_buffer = response_handler(remote_buffer) # modify the remote buffer with response_handler()
+	remote_buffer = response_handler(remote_buffer) # modify the buffer with response_handler()
 	if len(remote_buffer): # if data was received 
 		print("[<==] Sending %d bytes to localhost." % len(remote_buffer)) # log that there was a response (which is the print statement)
 		client_socket.send(remote_buffer) # and send to the client
 
 	# loop for packet relay
 	while True:
-		local_buffer = receive_from(client_socket)
-		if len(local_buffer):
+		local_buffer = receive_from(client_socket) # receive data from the local client
+		if len(local_buffer): # if the client sent data
 			line = "[==>] Received %d bytes from localhost." % len(local_buffer)
-			print(line)
-			hexdump(local_buffer)
+			print(line) # log that there was a response
+			hexdump(local_buffer) # and print its hexdump
 
-			local_buffer = request_handler(local_buffer)
+			local_buffer = request_handler(local_buffer) # modify the buffer with response_handler()
 			remote_socket.send(local_buffer)
 			print("[==>] Sent to remote.")
 
